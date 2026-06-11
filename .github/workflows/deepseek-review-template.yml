@@ -19,7 +19,7 @@ jobs:
 
       - name: Run DeepSeek Review
         uses: hustcer/deepseek-review@v1
-        env:
-          CHAT_TOKEN: ${{ secrets.TOKEN }}
         with:
+          chat_token: ${{ secrets.TOKEN }}
           temperature: 0.3
+          
