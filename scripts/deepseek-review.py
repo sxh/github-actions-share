@@ -100,19 +100,37 @@ def should_exclude(path: str) -> bool:
 def build_prompt() -> str:
     """Build the user prompt containing full file contents for all changed files."""
 
-    # Get the merge commit parents: HEAD^1 = base, HEAD^2 = PR head
-    # Check if HEAD^2 exists (would fail on a non-merge commit)
-    parent2 = git(["rev-parse", "--verify", "HEAD^2"], check=False)
-    has_two_parents = bool(parent2) and "fatal" not in parent2
+    # Priority 1: use environment variables from the workflow template
+    # (these come directly from github.event.pull_request.base.sha / .head.sha)
+    base_sha = os.environ.get("BASE_SHA")
+    head_sha = os.environ.get("HEAD_SHA")
 
-    if has_two_parents:
-        base_sha = git(["rev-parse", "HEAD^1"])
-        head_sha = git(["rev-parse", "HEAD^2"])
+    if base_sha and head_sha:
+        print(f"Using BASE_SHA/HEAD_SHA from environment", file=sys.stderr)
+
     else:
-        # Fallback: diff against first parent only
-        print("WARNING: merge commit does not have two parents, using HEAD^ as base", file=sys.stderr)
-        base_sha = git(["rev-parse", "HEAD^"])
-        head_sha = git(["rev-parse", "HEAD"])
+        # Priority 2: resolve from git commit topology
+        parent2 = git(["rev-parse", "--verify", "HEAD^2"], check=False)
+        has_two_parents = bool(parent2) and "fatal" not in parent2
+
+        if has_two_parents:
+            base_sha = git(["rev-parse", "HEAD^1"])
+            head_sha = git(["rev-parse", "HEAD^2"])
+        else:
+            # Fallback: diff against first parent only
+            print(
+                "WARNING: merge commit does not have two parents, using HEAD^ as base",
+                file=sys.stderr,
+            )
+            base_sha = git(["rev-parse", "--verify", "HEAD^"], check=False)
+            if not base_sha or "fatal" in base_sha:
+                print(
+                    "ERROR: Cannot determine base SHA (HEAD has no parent and "
+                    "BASE_SHA env var is not set). Skipping review.",
+                    file=sys.stderr,
+                )
+                return ""
+            head_sha = git(["rev-parse", "HEAD"])
 
     changed_files_raw = git(["diff", "--name-only", base_sha, head_sha])
     if not changed_files_raw:
