@@ -588,5 +588,30 @@ class TestMainFullFlow(unittest.TestCase):
         deepseek_review.build_prompt = original_build
 
 
+# ---------------------------------------------------------------------------
+# SYSTEM_PROMPT — review categories
+# ---------------------------------------------------------------------------
+
+class TestSystemPromptCategories(unittest.TestCase):
+    """SYSTEM_PROMPT should instruct the model to check for the full range
+    of issues that a human reviewer would catch — including those that
+    Gemini found but DeepSeek missed (HTML validity, accessibility, etc.)."""
+
+    def test_prompt_mentions_html_validity(self):
+        self.assertIn("HTML", deepseek_review.SYSTEM_PROMPT)
+
+    def test_prompt_mentions_accessibility(self):
+        self.assertIn("accessibility", deepseek_review.SYSTEM_PROMPT.lower())
+
+    def test_prompt_mentions_event_handling(self):
+        self.assertIn("event", deepseek_review.SYSTEM_PROMPT.lower())
+
+    def test_prompt_mentions_css_styling(self):
+        self.assertIn("CSS", deepseek_review.SYSTEM_PROMPT)
+
+    def test_prompt_mentions_framework_anti_patterns(self):
+        self.assertIn("framework", deepseek_review.SYSTEM_PROMPT.lower())
+
+
 if __name__ == "__main__":
     unittest.main()

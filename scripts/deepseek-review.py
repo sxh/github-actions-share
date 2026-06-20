@@ -63,6 +63,11 @@ Focus on identifying:
 - Resource leaks (unclosed connections, subscriptions, timers, etc.)
 - Incorrect assumptions about data flow or API contracts
 - Broken error handling (silently caught exceptions, missing error propagation)
+- HTML validity (invalid nesting of interactive elements, malformed tags, etc.)
+- Accessibility violations (missing ARIA attributes, broken keyboard navigation, screen reader issues, color contrast, focus management)
+- Event handling bugs (missing stopPropagation, double-firing, event delegation issues, unintended default behavior)
+- CSS / styling defects (missing disabled-state cursors, incorrect z-index, layout-breaking rules, responsive gaps)
+- Framework-specific anti-patterns (React controlled components bypassing onChange, form submission conflicts, stale closures, hook dependency arrays, test cleanup omissions)
 
 Be conservative about flagging:
 - Style preferences or formatting (unless they cause actual bugs)
