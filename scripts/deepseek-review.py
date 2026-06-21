@@ -68,6 +68,10 @@ Focus on identifying:
 - Event handling bugs (missing stopPropagation, double-firing, event delegation issues, unintended default behavior)
 - CSS / styling defects (missing disabled-state cursors, incorrect z-index, layout-breaking rules, responsive gaps)
 - Framework-specific anti-patterns (React controlled components bypassing onChange, form submission conflicts, stale closures, hook dependency arrays, test cleanup omissions)
+- [JS/TS] Global event handlers on document/root elements that check specific element types (e.g., `instanceof HTMLInputElement`) instead of using the DOM's general "already-handled" mechanism (`event.defaultPrevented`) — type-checking individual child elements is brittle and misses custom/future components
+- [JS/TS] Manual synchronization wrappers in tests (e.g., `act()`, `flushPromises()`, `runAllTimers()`) — these are code smells that mask async warnings; the correct pattern is to wait for a visible outcome of the async operation (e.g., `await screen.findByText(...)`)
+- Test file organization issues: multiple test files for one production component (should consolidate into one), filenames embedding fix history or bug numbers, or non-standard naming conventions
+- Unstable callback references in setup/teardown patterns (e.g., `useEffect` dependency arrays, `Disposable.using`, `addEventListener`/`removeEventListener` pairs) that cause repeated teardown-and-recreate cycles on every render or update
 
 Be conservative about flagging:
 - Style preferences or formatting (unless they cause actual bugs)

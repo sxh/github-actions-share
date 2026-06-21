@@ -612,6 +612,18 @@ class TestSystemPromptCategories(unittest.TestCase):
     def test_prompt_mentions_framework_anti_patterns(self):
         self.assertIn("framework", deepseek_review.SYSTEM_PROMPT.lower())
 
+    def test_prompt_mentions_global_event_handler_defaultPrevented(self):
+        self.assertIn("defaultPrevented", deepseek_review.SYSTEM_PROMPT)
+
+    def test_prompt_mentions_manual_sync_wrappers(self):
+        self.assertIn("act()", deepseek_review.SYSTEM_PROMPT)
+
+    def test_prompt_mentions_test_file_organization(self):
+        self.assertIn("test file", deepseek_review.SYSTEM_PROMPT.lower())
+
+    def test_prompt_mentions_unstable_callback_references(self):
+        self.assertIn("unstable callback", deepseek_review.SYSTEM_PROMPT.lower())
+
 
 if __name__ == "__main__":
     unittest.main()
