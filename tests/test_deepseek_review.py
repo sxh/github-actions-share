@@ -487,6 +487,22 @@ class TestCallDeepseek(unittest.TestCase):
                 deepseek_review.call_deepseek("hello")
             self.assertEqual(ctx.exception.code, 1)
 
+    def test_payload_includes_deepseek_reasoner_model(self):
+        """call_deepseek should send 'deepseek-reasoner' as the model in the request payload."""
+        captured_payload = {}
+
+        def capture_request(req, **kwargs):
+            captured_payload["data"] = json.loads(req.data.decode("utf-8"))
+            mock_resp = MagicMock()
+            mock_resp.read.return_value = b'{"choices": [{"message": {"content": "ok"}}]}'
+            mock_resp.__enter__.return_value = mock_resp
+            return mock_resp
+
+        with patch("urllib.request.urlopen", side_effect=capture_request):
+            deepseek_review.call_deepseek("hello")
+
+        self.assertEqual(captured_payload["data"]["model"], "deepseek-reasoner")
+
     def test_success_returns_content(self):
         """call_deepseek should return the review text on success."""
         mock_resp = MagicMock()

@@ -211,7 +211,7 @@ def build_prompt() -> str:
 def call_deepseek(user_prompt: str) -> str:
     """Send the prompt to DeepSeek and return the response text."""
     payload = json.dumps({
-        "model": "deepseek-v4-flash",
+        "model": "deepseek-reasoner",
         "messages": [
             {"role": "system", "content": SYSTEM_PROMPT},
             {"role": "user", "content": user_prompt},
