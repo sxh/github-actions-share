@@ -641,5 +641,46 @@ class TestSystemPromptCategories(unittest.TestCase):
         self.assertIn("unstable callback", deepseek_review.SYSTEM_PROMPT.lower())
 
 
+# ---------------------------------------------------------------------------
+# Workflow YAML configuration
+# ---------------------------------------------------------------------------
+
+class TestWorkflowYaml(unittest.TestCase):
+    """Tests for the reusable workflow YAML template."""
+
+    _TEMPLATE_PATH = os.path.join(
+        os.path.dirname(__file__), "..", ".github", "workflows", "deepseek-review-template.yml"
+    )
+
+    def test_checkout_merge_commit_uses_fetch_depth_0(self):
+        """The PR merge-commit checkout step must use fetch-depth: 0 so that
+        BASE_SHA and HEAD_SHA are available in the local clone."""
+        import yaml
+
+        with open(self._TEMPLATE_PATH) as f:
+            workflow = yaml.safe_load(f)
+
+        steps = workflow["jobs"]["review"]["steps"]
+        # Find the checkout step that uses refs/pull/.../merge
+        checkout_step = None
+        for step in steps:
+            if step.get("uses") == "actions/checkout@v4":
+                with_params = step.get("with", {})
+                ref = with_params.get("ref", "")
+                if "refs/pull/" in ref and "/merge" in ref:
+                    checkout_step = step
+                    break
+
+        self.assertIsNotNone(
+            checkout_step,
+            "Could not find checkout step with refs/pull/.../merge in the workflow template",
+        )
+        self.assertEqual(
+            checkout_step.get("with", {}).get("fetch-depth"),
+            0,
+            "PR merge-commit checkout step must have fetch-depth: 0",
+        )
+
+
 if __name__ == "__main__":
     unittest.main()
