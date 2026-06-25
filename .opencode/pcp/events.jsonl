@@ -22,3 +22,8 @@
 {"e":"backlog_add","id":"B001","title":"Add CI integration test for workflow checkout depth","detail":"Create a CI workflow (or extend existing) that verifies the checkout step fetches expected depth and that BASE_SHA/HEAD_SHA are resolvable in the local clone. Covers Level 4 finding from the fetch-depth retrospective.","ts":1782212476685}
 {"e":"done","id":"T011","ts":1782384785070}
 {"e":"created","id":"T012","type":"main","title":"DeepSeek review missed inline styles","ts":1782384851285}
+{"e":"done","id":"T012","ts":1782384941997}
+{"e":"created","id":"T013","type":"main","title":"DeepSeek review missed inline styles","ts":1782384945029}
+{"e":"done","id":"T013","ts":1782385339278}
+{"e":"created","id":"T014","type":"main","title":"DeepSeek review missed inline styles","ts":1782385346451}
+{"e":"backlog_dismiss","backlog_id":"B001","ts":1782385353215}
