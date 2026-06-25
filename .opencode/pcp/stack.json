@@ -1,9 +1,9 @@
 {
-  "next_id": 12,
+  "next_id": 13,
   "backlog_next_id": 2,
   "active_stack": [
-    "T011"
+    "T012"
   ],
-  "active_task_id": "T011",
+  "active_task_id": "T012",
   "ready_tasks": []
 }
