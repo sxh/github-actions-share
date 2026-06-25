@@ -15,3 +15,8 @@
 {"e":"created","id":"T008","type":"main","title":"Git error 128 in deepseek workflow","ts":1782211971188}
 {"e":"done","id":"T008","ts":1782212122585}
 {"e":"created","id":"T009","type":"main","title":"Git error 128 in deepseek workflow","ts":1782212130865}
+{"e":"done","id":"T009","ts":1782212211295}
+{"e":"created","id":"T010","type":"main","title":"Git error 128 in deepseek workflow","ts":1782212219319}
+{"e":"done","id":"T010","ts":1782212225421}
+{"e":"created","id":"T011","type":"main","title":"Git error 128 in deepseek workflow","ts":1782212453381}
+{"e":"backlog_add","id":"B001","title":"Add CI integration test for workflow checkout depth","detail":"Create a CI workflow (or extend existing) that verifies the checkout step fetches expected depth and that BASE_SHA/HEAD_SHA are resolvable in the local clone. Covers Level 4 finding from the fetch-depth retrospective.","ts":1782212476685}

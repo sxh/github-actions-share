@@ -205,7 +205,7 @@ class TestBuildPromptShaResolution(unittest.TestCase):
         # Only main.py should appear, not package-lock.json
         self.assertIn("src/main.py", result)
         self.assertNotIn("package-lock.json", result)
-        self.assertIn("Files skipped (excluded/too large): 1", result)
+        self.assertIn("Files skipped (excluded): 1", result)
 
     # -- Bug regression ----------------------------------------------------
 
@@ -414,9 +414,10 @@ class TestBuildPromptEdgeCases(unittest.TestCase):
         # All files excluded, so prompt should be empty
         self.assertEqual(result, "")
 
-    def test_too_large_file_skipped(self):
-        """File exceeding MAX_FILE_SIZE_CHARS should be skipped."""
-        repo = os.path.join(self._tmpdir, "too-large")
+    def test_large_file_included_in_prompt(self):
+        """Large files should be included in the prompt (not skipped), so
+        that the model can review them and suggest splitting opportunities."""
+        repo = os.path.join(self._tmpdir, "large-file")
         _init_repo(repo)
 
         with open(os.path.join(repo, "main.py"), "w") as f:
@@ -435,8 +436,9 @@ class TestBuildPromptEdgeCases(unittest.TestCase):
         os.chdir(repo)
         result = build_prompt()
 
-        # File is too large so prompt is empty (all skipped)
-        self.assertEqual(result, "")
+        # Large file must be included, not skipped
+        self.assertIn("main.py", result)
+        self.assertIn("Files provided for review: 1", result)
 
 
 # ---------------------------------------------------------------------------
@@ -639,6 +641,22 @@ class TestSystemPromptCategories(unittest.TestCase):
 
     def test_prompt_mentions_unstable_callback_references(self):
         self.assertIn("unstable callback", deepseek_review.SYSTEM_PROMPT.lower())
+
+    def test_prompt_mentions_inline_style_migration(self):
+        """SYSTEM_PROMPT should instruct the model to flag remaining inline
+        style={{...}} attributes that should be in a CSS module."""
+        self.assertIn("inline", deepseek_review.SYSTEM_PROMPT.lower())
+        self.assertIn("style=", deepseek_review.SYSTEM_PROMPT)
+
+    def test_prompt_does_not_ignore_refactoring_opportunities(self):
+        """SYSTEM_PROMPT must NOT tell the model to suppress refactoring
+        findings. When a PR is itself a refactoring (e.g. migrating inline
+        styles to a CSS module), incomplete refactoring is the primary thing
+        the review should catch."""
+        self.assertNotIn(
+            "Refactoring opportunities",
+            deepseek_review.SYSTEM_PROMPT,
+        )
 
 
 # ---------------------------------------------------------------------------
