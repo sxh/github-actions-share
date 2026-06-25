@@ -36,6 +36,12 @@ build_prompt = deepseek_review.build_prompt
 should_exclude = deepseek_review.should_exclude
 main = deepseek_review.main
 
+# Optional: yaml is only needed for the workflow template test
+try:
+    import yaml as _yaml
+    YAML_AVAILABLE = True
+except ImportError:
+    YAML_AVAILABLE = False
 
 # ---------------------------------------------------------------------------
 # Git helpers for test setup
@@ -131,6 +137,33 @@ class TestBuildPromptShaResolution(unittest.TestCase):
 
         # Should not crash; prompt may be empty (no diff) but that's fine
         self.assertIsInstance(result, str)
+
+    def test_merge_commit_parent_shas_resolvable(self):
+        """On a merge commit (simulating refs/pull/N/merge checkout),
+        both parent SHAs must be resolvable. This is the behaviour that
+        requires fetch-depth: 0 in the workflow YAML — with fetch-depth: 1,
+        git rev-parse HEAD^1 would fail with exit code 128."""
+        repo = os.path.join(self._tmpdir, "parent-shas")
+        _init_repo(repo)
+
+        _commit(repo, "base")
+        base_sha = _git(repo, "rev-parse", "HEAD")
+
+        _git(repo, "checkout", "-b", "feature")
+        _commit(repo, "feature")
+        feature_sha = _git(repo, "rev-parse", "HEAD")
+
+        _git(repo, "checkout", "main")
+        _git(repo, "merge", "--no-ff", "-m", "merge commit", "feature")
+
+        os.chdir(repo)
+
+        # These would fail with exit code 128 under fetch-depth: 1
+        parent1 = _git(repo, "rev-parse", "HEAD^1")
+        parent2 = _git(repo, "rev-parse", "HEAD^2")
+
+        self.assertEqual(parent1, base_sha)
+        self.assertEqual(parent2, feature_sha)
 
     def test_single_parent_fallback(self):
         """Non-merge commit: should fall back to HEAD^ and HEAD."""
@@ -670,13 +703,12 @@ class TestWorkflowYaml(unittest.TestCase):
         os.path.dirname(__file__), "..", ".github", "workflows", "deepseek-review-template.yml"
     )
 
+    @unittest.skipIf(not YAML_AVAILABLE, "PyYAML not installed")
     def test_checkout_merge_commit_uses_fetch_depth_0(self):
         """The PR merge-commit checkout step must use fetch-depth: 0 so that
         BASE_SHA and HEAD_SHA are available in the local clone."""
-        import yaml
-
         with open(self._TEMPLATE_PATH) as f:
-            workflow = yaml.safe_load(f)
+            workflow = _yaml.safe_load(f)
 
         steps = workflow["jobs"]["review"]["steps"]
         # Find the checkout step that uses refs/pull/.../merge
