@@ -681,6 +681,13 @@ class TestSystemPromptCategories(unittest.TestCase):
         self.assertIn("inline", deepseek_review.SYSTEM_PROMPT.lower())
         self.assertIn("style=", deepseek_review.SYSTEM_PROMPT)
 
+    def test_prompt_mentions_label_association_anti_pattern(self):
+        """SYSTEM_PROMPT should flag <label> elements that have both
+        implicit association (wrapping the control) and explicit association
+        (htmlFor/for attribute), as this is redundant and can cause duplicate
+        activation events — the finding that Gemini caught but DeepSeek missed."""
+        self.assertIn("duplicate activation events", deepseek_review.SYSTEM_PROMPT)
+
     def test_prompt_does_not_ignore_refactoring_opportunities(self):
         """SYSTEM_PROMPT must NOT tell the model to suppress refactoring
         findings. When a PR is itself a refactoring (e.g. migrating inline
