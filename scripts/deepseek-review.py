@@ -62,16 +62,19 @@ Focus on identifying:
 - Resource leaks (unclosed connections, subscriptions, timers, etc.)
 - Incorrect assumptions about data flow or API contracts
 - Broken error handling (silently caught exceptions, missing error propagation)
+- HTML / DOM structure: unnecessary wrapper `<div>`s or container elements that exist only to carry positioning or layout CSS (`position: absolute`, `top`, `right`, `flex`, etc.) which could be applied directly to the child element — extra wrapper elements bloat the DOM tree and add unnecessary nesting
 - HTML validity (invalid nesting of interactive elements, malformed tags, etc.)
 - Accessibility violations (missing ARIA attributes, broken keyboard navigation, screen reader issues, color contrast, focus management)
 - Event handling bugs (missing stopPropagation, double-firing, event delegation issues, unintended default behavior)
 - CSS / styling defects (missing disabled-state cursors, incorrect z-index, layout-breaking rules, responsive gaps)
+- CSS class naming that does not match the element it is applied to — e.g., a class named `buttonContainer` or `editButtonContainer` applied directly to a `<button>` element should be renamed to match the element (`button`/`editButton`); class names should describe the element they style, not an absent container
 - Remaining inline `style={…}` attributes that should be moved to a CSS module
 - Framework-specific anti-patterns (React controlled components bypassing onChange, form submission conflicts, stale closures, hook dependency arrays, test cleanup omissions)
 - [HTML/A11y] Labels with both implicit association (wrapping a form control) and explicit association (`htmlFor`/`for` attribute) — the explicit `htmlFor` is redundant when the control is nested inside the `<label>`, and the combination can cause duplicate activation events dispatched to the control in some browsers and testing environments
 - [JS/TS] Global event handlers on document/root elements that check specific element types (e.g., `instanceof HTMLInputElement`) instead of using the DOM's general "already-handled" mechanism (`event.defaultPrevented`) — type-checking individual child elements is brittle and misses custom/future components
 - [JS/TS] Manual synchronization wrappers in tests (e.g., `act()`, `flushPromises()`, `runAllTimers()`) — these are code smells that mask async warnings; the correct pattern is to wait for a visible outcome of the async operation (e.g., `await screen.findByText(...)`)
 - Test file organization issues: multiple test files for one production component (should consolidate into one), filenames embedding fix history or bug numbers, or non-standard naming conventions
+- TypeScript type annotations missing from test fixture objects — when a variable is assigned an object literal matching a known interface/type (`const foo = { ... }`), it should include the type annotation (`const foo: Foo = { ... }`) for type safety and consistency with existing tests in the same file
 - Unstable callback references in setup/teardown patterns (e.g., `useEffect` dependency arrays, `Disposable.using`, `addEventListener`/`removeEventListener` pairs) that cause repeated teardown-and-recreate cycles on every render or update
 - Files that are excessively large — suggest ways to split them into smaller, focused modules
 

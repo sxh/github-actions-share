@@ -698,6 +698,35 @@ class TestSystemPromptCategories(unittest.TestCase):
             deepseek_review.SYSTEM_PROMPT,
         )
 
+    def test_prompt_mentions_unnecessary_wrapper_elements(self):
+        """SYSTEM_PROMPT should flag unnecessary wrapper <div>s that exist
+        only to carry positioning/layout CSS which could go on the child
+        element — the wrapper-div finding that Gemini caught but DeepSeek
+        missed."""
+        self.assertIn(
+            "unnecessary wrapper",
+            deepseek_review.SYSTEM_PROMPT.lower(),
+        )
+
+    def test_prompt_mentions_css_class_name_mismatch(self):
+        """SYSTEM_PROMPT should flag CSS class names that describe a container
+        relationship (e.g., 'buttonContainer') when applied directly to the
+        element (e.g., a <button>) — the class-naming finding that Gemini
+        caught but DeepSeek missed."""
+        self.assertIn(
+            "class names",
+            deepseek_review.SYSTEM_PROMPT.lower(),
+        )
+
+    def test_prompt_mentions_missing_type_annotations_in_tests(self):
+        """SYSTEM_PROMPT should flag test fixture objects that are missing
+        TypeScript type annotations — the type-safety finding that Gemini
+        caught but DeepSeek missed."""
+        self.assertIn(
+            "type annotation",
+            deepseek_review.SYSTEM_PROMPT.lower(),
+        )
+
 
 # ---------------------------------------------------------------------------
 # Workflow YAML configuration
