@@ -727,6 +727,16 @@ class TestSystemPromptCategories(unittest.TestCase):
             deepseek_review.SYSTEM_PROMPT.lower(),
         )
 
+    def test_prompt_mentions_use_effect_for_native_dom_anti_pattern(self):
+        """SYSTEM_PROMPT should flag useEffect used for DOM operations that
+        have native HTML attribute alternatives (e.g., autoFocus instead of
+        useEffect + ref.focus()) — the finding that Gemini caught but DeepSeek
+        missed."""
+        self.assertIn(
+            "native HTML attribute",
+            deepseek_review.SYSTEM_PROMPT,
+        )
+
 
 # ---------------------------------------------------------------------------
 # Workflow YAML configuration

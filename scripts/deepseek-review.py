@@ -76,6 +76,7 @@ Focus on identifying:
 - Test file organization issues: multiple test files for one production component (should consolidate into one), filenames embedding fix history or bug numbers, or non-standard naming conventions
 - TypeScript type annotations missing from test fixture objects — when a variable is assigned an object literal matching a known interface/type (`const foo = { ... }`), it should include the type annotation (`const foo: Foo = { ... }`) for type safety and consistency with existing tests in the same file
 - Unstable callback references in setup/teardown patterns (e.g., `useEffect` dependency arrays, `Disposable.using`, `addEventListener`/`removeEventListener` pairs) that cause repeated teardown-and-recreate cycles on every render or update
+- [React] `useEffect` used for DOM operations that have native HTML attribute alternatives (e.g., `useEffect` + `ref.focus()` instead of the native `autoFocus` attribute) — imperative DOM manipulation in effects should be replaced with declarative HTML attributes where possible
 - Files that are excessively large — suggest ways to split them into smaller, focused modules
 
 Be conservative about flagging:
