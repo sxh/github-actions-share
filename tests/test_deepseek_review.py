@@ -663,30 +663,8 @@ class TestSystemPromptCategories(unittest.TestCase):
     def test_prompt_mentions_framework_anti_patterns(self):
         self.assertIn("framework", deepseek_review.SYSTEM_PROMPT.lower())
 
-    def test_prompt_mentions_global_event_handler_defaultPrevented(self):
-        self.assertIn("defaultPrevented", deepseek_review.SYSTEM_PROMPT)
-
-    def test_prompt_mentions_manual_sync_wrappers(self):
-        self.assertIn("act()", deepseek_review.SYSTEM_PROMPT)
-
     def test_prompt_mentions_test_file_organization(self):
         self.assertIn("test file", deepseek_review.SYSTEM_PROMPT.lower())
-
-    def test_prompt_mentions_unstable_callback_references(self):
-        self.assertIn("unstable callback", deepseek_review.SYSTEM_PROMPT.lower())
-
-    def test_prompt_mentions_inline_style_migration(self):
-        """SYSTEM_PROMPT should instruct the model to flag remaining inline
-        style={{...}} attributes that should be in a CSS module."""
-        self.assertIn("inline", deepseek_review.SYSTEM_PROMPT.lower())
-        self.assertIn("style=", deepseek_review.SYSTEM_PROMPT)
-
-    def test_prompt_mentions_label_association_anti_pattern(self):
-        """SYSTEM_PROMPT should flag <label> elements that have both
-        implicit association (wrapping the control) and explicit association
-        (htmlFor/for attribute), as this is redundant and can cause duplicate
-        activation events — the finding that Gemini caught but DeepSeek missed."""
-        self.assertIn("duplicate activation events", deepseek_review.SYSTEM_PROMPT)
 
     def test_prompt_does_not_ignore_refactoring_opportunities(self):
         """SYSTEM_PROMPT must NOT tell the model to suppress refactoring
@@ -698,42 +676,25 @@ class TestSystemPromptCategories(unittest.TestCase):
             deepseek_review.SYSTEM_PROMPT,
         )
 
-    def test_prompt_mentions_unnecessary_wrapper_elements(self):
-        """SYSTEM_PROMPT should flag unnecessary wrapper <div>s that exist
-        only to carry positioning/layout CSS which could go on the child
-        element — the wrapper-div finding that Gemini caught but DeepSeek
-        missed."""
+    def test_prompt_mentions_indirection_principle(self):
+        """SYSTEM_PROMPT should include an 'indirection' principle covering
+        patterns where code uses an indirect or imperative construct when a
+        simpler, standard, or declarative one exists (e.g., useEffect+focus
+        vs autoFocus, inline styles vs CSS modules, manual test sync wrappers
+        vs awaiting visible outcomes, instanceof checks vs defaultPrevented)."""
         self.assertIn(
-            "unnecessary wrapper",
-            deepseek_review.SYSTEM_PROMPT.lower(),
+            "**Indirection**",
+            deepseek_review.SYSTEM_PROMPT,
         )
 
-    def test_prompt_mentions_css_class_name_mismatch(self):
-        """SYSTEM_PROMPT should flag CSS class names that describe a container
-        relationship (e.g., 'buttonContainer') when applied directly to the
-        element (e.g., a <button>) — the class-naming finding that Gemini
-        caught but DeepSeek missed."""
+    def test_prompt_mentions_inconsistency_principle(self):
+        """SYSTEM_PROMPT should include an 'inconsistency' principle covering
+        definitions that contradict what they describe (e.g., class names
+        that describe a container but are applied to the element itself,
+        labels that both wrap and use htmlFor, test fixtures missing type
+        annotations, unstable callback references)."""
         self.assertIn(
-            "class names",
-            deepseek_review.SYSTEM_PROMPT.lower(),
-        )
-
-    def test_prompt_mentions_missing_type_annotations_in_tests(self):
-        """SYSTEM_PROMPT should flag test fixture objects that are missing
-        TypeScript type annotations — the type-safety finding that Gemini
-        caught but DeepSeek missed."""
-        self.assertIn(
-            "type annotation",
-            deepseek_review.SYSTEM_PROMPT.lower(),
-        )
-
-    def test_prompt_mentions_use_effect_for_native_dom_anti_pattern(self):
-        """SYSTEM_PROMPT should flag useEffect used for DOM operations that
-        have native HTML attribute alternatives (e.g., autoFocus instead of
-        useEffect + ref.focus()) — the finding that Gemini caught but DeepSeek
-        missed."""
-        self.assertIn(
-            "native HTML attribute",
+            "**Inconsistency**",
             deepseek_review.SYSTEM_PROMPT,
         )
 
