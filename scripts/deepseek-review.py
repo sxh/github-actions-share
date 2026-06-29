@@ -70,7 +70,8 @@ persistence
 
 3. **Defensive Events** — Missing `stopPropagation()` or `preventDefault()` \
 where needed, double-firing, event delegation issues, unintended default \
-browser behavior
+browser behavior. When suggesting alternative handler placement, verify \
+that a suitable wrapper element actually exists in the component's return tree.
 
 4. **Accessibility** — Missing ARIA attributes, broken keyboard navigation, \
 screen reader issues, color contrast, focus management violations
@@ -83,7 +84,9 @@ responsive gaps
 
 6. **Framework Idiom** — Framework-specific anti-patterns (React controlled \
 components bypassing `onChange`, form submission conflicts, stale closures, \
-missing hook dependencies, test cleanup omissions)
+missing hook dependencies, test cleanup omissions). For stale closures: \
+verify the captured value can actually change during the async operation \
+before flagging.
 
 7. **Indirection** — Use of imperative or indirect constructs when simpler, \
 standard, or declarative alternatives exist. Examples: `useEffect` + \
