@@ -698,6 +698,24 @@ class TestSystemPromptCategories(unittest.TestCase):
             deepseek_review.SYSTEM_PROMPT,
         )
 
+    def test_prompt_mentions_boundary_validation(self):
+        """SYSTEM_PROMPT should include a 'Boundary Validation' principle
+        covering missing input validation at data entry points (form
+        submission, API handlers, file parsing)."""
+        self.assertIn(
+            "Boundary Validation",
+            deepseek_review.SYSTEM_PROMPT,
+        )
+
+    def test_prompt_mentions_defensive_events(self):
+        """SYSTEM_PROMPT should include a 'Defensive Events' principle
+        covering missing stopPropagation, preventDefault, double-firing,
+        and other event handling bugs."""
+        self.assertIn(
+            "Defensive Events",
+            deepseek_review.SYSTEM_PROMPT,
+        )
+
 
 # ---------------------------------------------------------------------------
 # Workflow YAML configuration

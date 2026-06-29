@@ -55,22 +55,54 @@ For each file changed in this PR, the COMPLETE file content is provided below, \
 not just the diff hunks. This means you can see imports, type definitions, \
 interfaces, and other declarations that give full context for your review.
 
-Focus on identifying:
-- Logic errors and bugs that would cause incorrect behavior at runtime
-- Type safety issues (mismatched types, missing null checks, etc.)
-- Security vulnerabilities (XSS, injection, credential leaks, etc.)
-- Resource leaks (unclosed connections, subscriptions, timers, etc.)
-- Incorrect assumptions about data flow or API contracts
-- Broken error handling (silently caught exceptions, missing error propagation)
-- HTML / DOM tree: invalid nesting of interactive elements, malformed tags, or unnecessary wrapper `<div>`s or container elements that exist only to carry layout CSS which could be applied directly to the child element
-- Accessibility violations (missing ARIA attributes, broken keyboard navigation, screen reader issues, color contrast, focus management)
-- Event handling bugs (missing stopPropagation, double-firing, event delegation issues, unintended default behavior)
-- CSS / styling defects (missing disabled-state cursors, incorrect z-index, layout-breaking rules, responsive gaps)
-- Framework-specific anti-patterns (React controlled components bypassing onChange, form submission conflicts, stale closures, hook dependency arrays, test cleanup omissions)
-- **Indirection**: code that uses an indirect or imperative construct when a simpler, standard, or declarative one exists — e.g., `useEffect` + `ref.focus()` instead of native `autoFocus`, inline `style={…}` instead of a CSS module class, manual test sync wrappers (`act()`, `flushPromises()`) instead of awaiting visible outcomes, global event handlers checking `instanceof` instead of `event.defaultPrevented`
-- **Inconsistency**: definitions that contradict what they describe — e.g., class names that describe a container but are applied to the element itself, `<label>` elements that both wrap a control and use `htmlFor`, test fixture objects missing type annotations, unstable callback references in dependency arrays or listener pairs that cause repeated teardown-recreate cycles
-- Test file organization: multiple test files for one component, filenames embedding fix history or bug numbers, or non-standard naming conventions
-- Files that are excessively large — suggest ways to split them into smaller, focused modules
+Focus on identifying violations of these principles, with representative examples:
+
+1. **Correctness** — Logic errors, type mismatches, incorrect assumptions about \
+data flow or API contracts, broken error handling (silently caught exceptions, \
+missing error propagation), resource leaks (unclosed connections, subscriptions, \
+timers), security vulnerabilities (XSS, injection, credential leaks)
+
+2. **Boundary Validation** — Missing input validation at data entry points \
+(form submission, API handlers, file parsing). Data should be sanitized or \
+rejected before crossing a system boundary. Examples: saving empty or \
+whitespace-only values, accepting invalid formats, missing `trim()` before \
+persistence
+
+3. **Defensive Events** — Missing `stopPropagation()` or `preventDefault()` \
+where needed, double-firing, event delegation issues, unintended default \
+browser behavior
+
+4. **Accessibility** — Missing ARIA attributes, broken keyboard navigation, \
+screen reader issues, color contrast, focus management violations
+
+5. **HTML / CSS Quality** — Invalid DOM nesting of interactive elements, \
+malformed tags, unnecessary wrapper `<div>`s or containers that exist only \
+to carry layout CSS which could be applied directly to the child element, \
+missing disabled-state cursors, incorrect z-index, layout-breaking rules, \
+responsive gaps
+
+6. **Framework Idiom** — Framework-specific anti-patterns (React controlled \
+components bypassing `onChange`, form submission conflicts, stale closures, \
+missing hook dependencies, test cleanup omissions)
+
+7. **Indirection** — Use of imperative or indirect constructs when simpler, \
+standard, or declarative alternatives exist. Examples: `useEffect` + \
+`ref.focus()` → native `autoFocus`, inline `style={…}` → CSS module class, \
+manual test sync wrappers (`act()`, `flushPromises()`) → awaiting visible \
+outcomes, global event handlers checking `instanceof` → \
+`event.defaultPrevented`
+
+8. **Inconsistency** — Definitions that contradict what they describe. \
+Examples: class names that describe a container but apply to the element \
+itself, `<label>` elements that both wrap a control and use `htmlFor`, test \
+fixture objects missing type annotations, unstable callback references in \
+dependency arrays or listener pairs that cause repeated teardown-recreate cycles
+
+9. **Test Organization** — Multiple test files for one component, filenames \
+embedding fix history or bug numbers, or non-standard naming conventions
+
+10. **File Size** — Files that are excessively large — suggest ways to split \
+them into smaller, focused modules
 
 Be conservative about flagging:
 - Style preferences or formatting (unless they cause actual bugs)
