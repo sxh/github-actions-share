@@ -84,9 +84,13 @@ responsive gaps
 
 6. **Framework Idiom** — Framework-specific anti-patterns (React controlled \
 components bypassing `onChange`, form submission conflicts, stale closures, \
-missing hook dependencies, test cleanup omissions). For stale closures: \
-verify the captured value can actually change during the async operation \
-before flagging.
+missing hook dependencies, test cleanup omissions, **floating promises from \
+async event handlers — calling an `async` function in `onClick`, `onSubmit`, \
+or similar synchronous event handlers without `void` or `.catch()` produces a \
+discarded Promise that can cause unhandled rejections and triggers lint rules \
+like `@typescript-eslint/no-floating-promises**). \
+For stale closures: verify the captured value can actually change during the \
+async operation before flagging.
 
 7. **Indirection** — Use of imperative or indirect constructs when simpler, \
 standard, or declarative alternatives exist. Examples: `useEffect` + \
