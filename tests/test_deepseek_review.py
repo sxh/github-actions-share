@@ -716,6 +716,57 @@ class TestSystemPromptCategories(unittest.TestCase):
             deepseek_review.SYSTEM_PROMPT,
         )
 
+    def test_prompt_mentions_silent_data_loss(self):
+        """SYSTEM_PROMPT should call out silent data loss from logic gated
+        on an optional companion method — where a computed result is silently
+        discarded when a separate method is absent, rather than applied with a
+        default fallback. This covers the pattern seen in decorator/adapter
+        code where an effect and its formatting are separate methods."""
+        self.assertIn(
+            "silent data loss from logic gated on an optional companion",
+            deepseek_review.SYSTEM_PROMPT,
+        )
+
+    def test_prompt_mentions_coverage_integrity(self):
+        """SYSTEM_PROMPT should include a 'Coverage Integrity' principle
+        covering coverage thresholds lowered in config files instead of adding
+        tests, and test suites that skip error paths, throw branches, boundary
+        conditions, and edge cases."""
+        self.assertIn(
+            "Coverage Integrity",
+            deepseek_review.SYSTEM_PROMPT,
+        )
+
+    def test_prompt_mentions_coverage_thresholds_lowered(self):
+        """SYSTEM_PROMPT should mention coverage thresholds being lowered
+        in config files to compensate for uncovered code."""
+        self.assertIn(
+            "coverage thresholds lowered",
+            deepseek_review.SYSTEM_PROMPT,
+        )
+
+    def test_prompt_mentions_error_path_tests(self):
+        """SYSTEM_PROMPT should instruct the model to flag test suites that
+        omit error paths, throw branches, boundary conditions, and edge cases."""
+        self.assertIn(
+            "error paths",
+            deepseek_review.SYSTEM_PROMPT,
+        )
+
+    def test_prompt_mentions_throw_branches(self):
+        """SYSTEM_PROMPT should mention uncovered throw branches specifically."""
+        self.assertIn(
+            "throw branches",
+            deepseek_review.SYSTEM_PROMPT,
+        )
+
+    def test_prompt_mentions_vitest_config(self):
+        """SYSTEM_PROMPT should mention vitest as a coverage config example."""
+        self.assertIn(
+            "vitest",
+            deepseek_review.SYSTEM_PROMPT,
+        )
+
 
 # ---------------------------------------------------------------------------
 # Workflow YAML configuration

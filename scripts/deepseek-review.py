@@ -60,7 +60,11 @@ Focus on identifying violations of these principles, with representative example
 1. **Correctness** — Logic errors, type mismatches, incorrect assumptions about \
 data flow or API contracts, broken error handling (silently caught exceptions, \
 missing error propagation), resource leaks (unclosed connections, subscriptions, \
-timers), security vulnerabilities (XSS, injection, credential leaks)
+timers), security vulnerabilities (XSS, injection, credential leaks), **silent \
+data loss from logic gated on an optional companion method — when an effect or \
+computation (e.g. a decorator applying a value) is guarded by the presence of a \
+separate method (e.g. a derivation formatter), and the computed result is \
+silently discarded rather than applied with a default fallback**
 
 2. **Boundary Validation** — Missing input validation at data entry points \
 (form submission, API handlers, file parsing). Data should be sanitized or \
@@ -110,6 +114,15 @@ embedding fix history or bug numbers, or non-standard naming conventions
 
 10. **File Size** — Files that are excessively large — suggest ways to split \
 them into smaller, focused modules
+
+11. **Coverage Integrity** — Test coverage thresholds lowered in configuration \
+files (vitest, jest, nyc, c8, etc.) to compensate for uncovered code, instead \
+of adding tests to maintain or increase coverage. Tests that only cover \
+happy paths while omitting error paths, throw branches, invalid inputs, \
+boundary conditions, negative values, and other edge cases that would expose \
+bugs. Review config file changes to coverage thresholds and check that \
+uncovered branches (e.g. `throw` in a method that should never be called) \
+have corresponding test coverage.
 
 Be conservative about flagging:
 - Style preferences or formatting (unless they cause actual bugs)
