@@ -760,6 +760,15 @@ class TestSystemPromptCategories(unittest.TestCase):
             deepseek_review.SYSTEM_PROMPT,
         )
 
+    def test_prompt_mentions_100vw_scrollbar_issue(self):
+        """SYSTEM_PROMPT should warn about width: 100vw / height: 100vh on
+        fixed-position elements causing horizontal scrollbars — the fix Gemini
+        caught in PR #71 that DeepSeek missed."""
+        self.assertIn(
+            "100vw",
+            deepseek_review.SYSTEM_PROMPT,
+        )
+
     def test_prompt_mentions_vitest_config(self):
         """SYSTEM_PROMPT should mention vitest as a coverage config example."""
         self.assertIn(

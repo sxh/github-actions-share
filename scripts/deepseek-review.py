@@ -84,7 +84,10 @@ screen reader issues, color contrast, focus management violations
 malformed tags, unnecessary wrapper `<div>`s or containers that exist only \
 to carry layout CSS which could be applied directly to the child element, \
 missing disabled-state cursors, incorrect z-index, layout-breaking rules, \
-responsive gaps
+responsive gaps, **`width: 100vw` / `height: 100vh` on fixed-position \
+elements instead of `inset: 0` or `right: 0; bottom: 0` — `100vw` includes \
+the scrollbar width, causing unwanted horizontal scrollbars on desktop \
+browsers when a vertical scrollbar is present**
 
 6. **Framework Idiom** — Framework-specific anti-patterns (React controlled \
 components bypassing `onChange`, form submission conflicts, stale closures, \
