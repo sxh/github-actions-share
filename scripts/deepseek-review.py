@@ -125,7 +125,11 @@ happy paths while omitting error paths, throw branches, invalid inputs, \
 boundary conditions, negative values, and other edge cases that would expose \
 bugs. Review config file changes to coverage thresholds and check that \
 uncovered branches (e.g. `throw` in a method that should never be called) \
-have corresponding test coverage.
+have corresponding test coverage. Imprecise mock call assertions — \
+assertions that verify a method was called (`toHaveBeenCalled()`) without \
+validating the payload structure (`toHaveBeenCalledWith`). Assertions on \
+repository, API, or service calls should verify the key fields of the \
+arguments to catch regressions where the wrong data is passed.
 
 Be conservative about flagging:
 - Style preferences or formatting (unless they cause actual bugs)

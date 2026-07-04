@@ -776,6 +776,19 @@ class TestSystemPromptCategories(unittest.TestCase):
             deepseek_review.SYSTEM_PROMPT,
         )
 
+    def test_prompt_mentions_imprecise_mock_assertions(self):
+        """SYSTEM_PROMPT should warn about toHaveBeenCalled() without
+        toHaveBeenCalledWith — the imprecise assertion pattern Gemini caught
+        that DeepSeek missed."""
+        self.assertIn(
+            "toHaveBeenCalled",
+            deepseek_review.SYSTEM_PROMPT,
+        )
+        self.assertIn(
+            "toHaveBeenCalledWith",
+            deepseek_review.SYSTEM_PROMPT,
+        )
+
 
 # ---------------------------------------------------------------------------
 # Workflow YAML configuration
