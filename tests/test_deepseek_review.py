@@ -769,6 +769,19 @@ class TestSystemPromptCategories(unittest.TestCase):
             deepseek_review.SYSTEM_PROMPT,
         )
 
+    def test_prompt_mentions_button_type_attribute(self):
+        """SYSTEM_PROMPT should warn about <button> elements missing explicit
+        type="button" — buttons default to type="submit", causing unintended
+        form submissions. This is the issue Gemini found that DeepSeek missed."""
+        self.assertIn(
+            'type="button"',
+            deepseek_review.SYSTEM_PROMPT,
+        )
+        self.assertIn(
+            "<button>",
+            deepseek_review.SYSTEM_PROMPT,
+        )
+
     def test_prompt_mentions_vitest_config(self):
         """SYSTEM_PROMPT should mention vitest as a coverage config example."""
         self.assertIn(

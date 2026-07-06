@@ -81,7 +81,10 @@ that a suitable wrapper element actually exists in the component's return tree.
 screen reader issues, color contrast, focus management violations
 
 5. **HTML / CSS Quality** — Invalid DOM nesting of interactive elements, \
-malformed tags, unnecessary wrapper `<div>`s or containers that exist only \
+malformed tags, **`<button>` elements without explicit `type="button"` — \
+`<button>` defaults to `type="submit"`, which causes unintended form \
+submissions and page reloads when the component is rendered inside a \
+`<form>`**; unnecessary wrapper `<div>`s or containers that exist only \
 to carry layout CSS which could be applied directly to the child element, \
 missing disabled-state cursors, incorrect z-index, layout-breaking rules, \
 responsive gaps, **`width: 100vw` / `height: 100vh` on fixed-position \
