@@ -802,6 +802,24 @@ class TestSystemPromptCategories(unittest.TestCase):
             deepseek_review.SYSTEM_PROMPT,
         )
 
+    def test_prompt_mentions_stale_derived_state(self):
+        """SYSTEM_PROMPT should warn about local state initialized from props
+        via useState(props.someValue) that goes stale when the component stays
+        mounted across prop changes — the state synchronization bug Gemini
+        found that DeepSeek missed."""
+        self.assertIn(
+            "Stale local state derived from props",
+            deepseek_review.SYSTEM_PROMPT,
+        )
+        self.assertIn(
+            "useState(props.someValue)",
+            deepseek_review.SYSTEM_PROMPT,
+        )
+        self.assertIn(
+            "key={id}",
+            deepseek_review.SYSTEM_PROMPT,
+        )
+
 
 # ---------------------------------------------------------------------------
 # Workflow YAML configuration

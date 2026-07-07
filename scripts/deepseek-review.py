@@ -99,6 +99,12 @@ async event handlers — calling an `async` function in `onClick`, `onSubmit`, \
 or similar synchronous event handlers without `void` or `.catch()` produces a \
 discarded Promise that can cause unhandled rejections and triggers lint rules \
 like `@typescript-eslint/no-floating-promises**). \
+**Stale local state derived from props — when a component initializes local \
+state via `useState(props.someValue)`, the initializer only runs on mount. If \
+the component remains mounted across prop changes (e.g. toggling between \
+edit/view modes without unmounting), external updates to the prop are not \
+reflected in the local state. The fix: use `key={id}` on the component to \
+force re-mount, use `useEffect` to synchronize, or lift state up.** \
 For stale closures: verify the captured value can actually change during the \
 async operation before flagging.
 
