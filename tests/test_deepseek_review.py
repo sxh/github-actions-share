@@ -820,6 +820,33 @@ class TestSystemPromptCategories(unittest.TestCase):
             deepseek_review.SYSTEM_PROMPT,
         )
 
+    def test_prompt_mentions_css_module_encapsulation(self):
+        """SYSTEM_PROMPT should warn about switching from module-scoped
+        CSS classes to global classes — the global class visual regression
+        pattern Gemini caught in SearchInput that DeepSeek missed."""
+        self.assertIn(
+            "CSS module encapsulation",
+            deepseek_review.SYSTEM_PROMPT,
+        )
+
+    def test_prompt_mentions_global_class_visual_regression(self):
+        """SYSTEM_PROMPT should mention visual regressions from global classes
+        carrying conflicting styles (border, dimensions, border-radius) that
+        don't match the component's layout."""
+        self.assertIn(
+            "global class visual regression",
+            deepseek_review.SYSTEM_PROMPT,
+        )
+
+    def test_prompt_mentions_global_class_style_properties(self):
+        """SYSTEM_PROMPT should list concrete style properties that can
+        conflict when reusing a global class (border, dimensions,
+        border-radius) to make the rule actionable."""
+        prompt = deepseek_review.SYSTEM_PROMPT
+        self.assertIn("border", prompt)
+        self.assertIn("dimensions", prompt)
+        self.assertIn("border-radius", prompt)
+
 
 # ---------------------------------------------------------------------------
 # Workflow YAML configuration

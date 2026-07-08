@@ -90,7 +90,16 @@ missing disabled-state cursors, incorrect z-index, layout-breaking rules, \
 responsive gaps, **`width: 100vw` / `height: 100vh` on fixed-position \
 elements instead of `inset: 0` or `right: 0; bottom: 0` — `100vw` includes \
 the scrollbar width, causing unwanted horizontal scrollbars on desktop \
-browsers when a vertical scrollbar is present**
+browsers when a vertical scrollbar is present**; \
+**CSS module encapsulation / global class visual regression** — when a \
+component switches from a module-scoped class to a global CSS class (e.g. \
+`styles.clearButton` → `"iconButton"`), verify the global class's full style \
+definition is compatible with the component's layout requirements. Global \
+classes may carry conflicting styles — unwanted borders inside an already-\
+bordered container, fixed dimensions too large for an inline element, or \
+wrong border-radius (e.g. `6px` instead of `50%`). CSS modules prevent these \
+regressions; introducing global class dependencies requires auditing every \
+property in the global class's definition
 
 6. **Framework Idiom** — Framework-specific anti-patterns (React controlled \
 components bypassing `onChange`, form submission conflicts, stale closures, \
