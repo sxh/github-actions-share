@@ -70,7 +70,13 @@ silently discarded rather than applied with a default fallback**
 (form submission, API handlers, file parsing). Data should be sanitized or \
 rejected before crossing a system boundary. Examples: saving empty or \
 whitespace-only values, accepting invalid formats, missing `trim()` before \
-persistence
+persistence. Also: **nullable field access from external/legacy data** when \
+constructing derived records or display strings — values from API responses, \
+legacy data, or file sources may be null, undefined, or empty at runtime. \
+Accessing a property without a fallback can silently produce `"null (Copy)"` \
+or `"undefined (Copy)"` in derived output. Require explicit fallbacks like \
+`obj.field?.trim() || "Default"` or optional chaining with nullish coalescing \
+when the field is used to construct new data
 
 3. **Defensive Events** — Missing `stopPropagation()` or `preventDefault()` \
 where needed, double-firing, event delegation issues, unintended default \

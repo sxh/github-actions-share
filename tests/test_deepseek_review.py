@@ -847,6 +847,31 @@ class TestSystemPromptCategories(unittest.TestCase):
         self.assertIn("dimensions", prompt)
         self.assertIn("border-radius", prompt)
 
+    def test_prompt_mentions_nullable_field_access_from_external_data(self):
+        """SYSTEM_PROMPT should warn about accessing nullable fields from
+        external/legacy data without fallbacks when constructing derived
+        records — the null-safety issue Gemini found in the palette copy
+        handler that DeepSeek missed. Code like `|${palette.name} (Copy)|`
+        produces |null (Copy)| or |undefined (Copy)| when palette.name is
+        null/undefined at runtime."""
+        self.assertIn(
+            "nullable field access from external/legacy data",
+            deepseek_review.SYSTEM_PROMPT,
+        )
+
+    def test_prompt_mentions_optional_chaining_or_fallback_for_api_data(self):
+        """SYSTEM_PROMPT should mention optional chaining (?.), nullish
+        coalescing, or explicit fallback patterns to handle nullable fields
+        from API responses when constructing derived data."""
+        prompt = deepseek_review.SYSTEM_PROMPT
+        # Check for either optional chaining or fallback pattern mention
+        has_fallback = "?." in prompt or "||" in prompt or "fallback" in prompt
+        self.assertTrue(
+            has_fallback,
+            "SYSTEM_PROMPT should suggest optional chaining (?.) or fallback patterns "
+            "(||, 'Default') for nullable field access from external data",
+        )
+
 
 # ---------------------------------------------------------------------------
 # Workflow YAML configuration
