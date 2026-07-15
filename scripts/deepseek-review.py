@@ -60,11 +60,18 @@ Focus on identifying violations of these principles, with representative example
 1. **Correctness** — Logic errors, type mismatches, incorrect assumptions about \
 data flow or API contracts, broken error handling (silently caught exceptions, \
 missing error propagation), resource leaks (unclosed connections, subscriptions, \
-timers), security vulnerabilities (XSS, injection, credential leaks), **silent \
+timers), security vulnerabilities (XSS, injection, credential leaks, **leaking \
+raw error messages in production HTTP responses — returning `err.message` \
+directly for 5xx status codes instead of a generic safe message exposes \
+internal system details like database errors or stack traces**), **silent \
 data loss from logic gated on an optional companion method — when an effect or \
 computation (e.g. a decorator applying a value) is guarded by the presence of a \
 separate method (e.g. a derivation formatter), and the computed result is \
-silently discarded rather than applied with a default fallback**
+silently discarded rather than applied with a default fallback**, **relying on \
+string matching against error messages (`err.message.includes(...)`) to \
+determine behavior such as HTTP status codes, instead of using custom error \
+classes with `instanceof` checks — string matching is brittle and breaks when \
+error messages are updated, localized, or refactored**
 
 2. **Boundary Validation** — Missing input validation at data entry points \
 (form submission, API handlers, file parsing). Data should be sanitized or \

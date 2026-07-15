@@ -872,6 +872,27 @@ class TestSystemPromptCategories(unittest.TestCase):
             "(||, 'Default') for nullable field access from external data",
         )
 
+    def test_prompt_mentions_error_message_leakage_in_production(self):
+        """SYSTEM_PROMPT should warn against leaking raw error messages (database
+        errors, stack traces, internal details) in production HTTP responses —
+        the security issue Gemini found in getErrorMessage that DeepSeek missed.
+        Error handlers must return a generic safe message for 5xx status codes
+        instead of err.message directly."""
+        self.assertIn(
+            "raw error message",
+            deepseek_review.SYSTEM_PROMPT,
+        )
+
+    def test_prompt_mentions_brittle_string_matching_for_status_codes(self):
+        """SYSTEM_PROMPT should warn about relying on string matching against
+        error messages (err.message.includes) to determine behavior like HTTP
+        status codes — the brittleness issue Gemini found that DeepSeek missed.
+        Custom error classes or typed errors should be used instead."""
+        self.assertIn(
+            "string matching against error message",
+            deepseek_review.SYSTEM_PROMPT,
+        )
+
 
 # ---------------------------------------------------------------------------
 # Workflow YAML configuration
