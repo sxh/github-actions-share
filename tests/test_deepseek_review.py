@@ -893,6 +893,32 @@ class TestSystemPromptCategories(unittest.TestCase):
             deepseek_review.SYSTEM_PROMPT,
         )
 
+    def test_prompt_mentions_destructive_action_safety(self):
+        """SYSTEM_PROMPT should warn about removing window.confirm or similar
+        blocking confirmations that guard destructive operations (delete, remove,
+        overwrite, archive) without replacing them with a non-blocking safety
+        mechanism — the issue Gemini found about deleting confirmations that
+        DeepSeek missed."""
+        self.assertIn(
+            "destructive action safety",
+            deepseek_review.SYSTEM_PROMPT,
+        )
+
+    def test_prompt_mentions_window_confirm(self):
+        """SYSTEM_PROMPT should mention window.confirm as a concrete example of
+        a destructive-action guard that should not be removed without replacement."""
+        self.assertIn(
+            "window.confirm",
+            deepseek_review.SYSTEM_PROMPT,
+        )
+
+    def test_prompt_mentions_alternative_safety_mechanisms(self):
+        """SYSTEM_PROMPT should suggest replacement safety mechanisms for removed
+        blocking confirmations, such as custom confirmation modals or undo toasts."""
+        prompt = deepseek_review.SYSTEM_PROMPT
+        self.assertIn("confirmation modal", prompt)
+        self.assertIn("undo toast", prompt)
+
 
 # ---------------------------------------------------------------------------
 # Workflow YAML configuration

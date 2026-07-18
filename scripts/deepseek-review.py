@@ -71,7 +71,15 @@ silently discarded rather than applied with a default fallback**, **relying on \
 string matching against error messages (`err.message.includes(...)`) to \
 determine behavior such as HTTP status codes, instead of using custom error \
 classes with `instanceof` checks — string matching is brittle and breaks when \
-error messages are updated, localized, or refactored**
+error messages are updated, localized, or refactored**; \
+**destructive action safety — removing `window.confirm`, `window.prompt`, or \
+similar blocking confirmations that guard destructive operations (delete, \
+remove, overwrite, archive, clear) without replacing them with a non-blocking \
+safety mechanism (custom confirmation modal, undo toast, secondary click \
+confirmation, or similar). Removing the guard entirely makes the action fire \
+on a single click, creating a high risk of accidental data loss. A review \
+must flag any PR that removes an existing destructive-action confirmation \
+without providing an alternative safety mechanism**
 
 2. **Boundary Validation** — Missing input validation at data entry points \
 (form submission, API handlers, file parsing). Data should be sanitized or \
