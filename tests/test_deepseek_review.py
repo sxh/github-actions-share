@@ -919,6 +919,35 @@ class TestSystemPromptCategories(unittest.TestCase):
         self.assertIn("confirmation modal", prompt)
         self.assertIn("undo toast", prompt)
 
+    def test_prompt_mentions_composition_root_guard_pattern(self):
+        """SYSTEM_PROMPT should recognize the composition-root confirmation pattern:
+        a presentational child component (card, row) may fire a destructive callback
+        immediately by design, with the confirmation guard wired where the parent
+        composes the handler. Flagging the child alone as single-click data loss is
+        a false positive — the reviewer must verify the parent wiring first."""
+        self.assertIn(
+            "composition root",
+            deepseek_review.SYSTEM_PROMPT,
+        )
+
+    def test_prompt_mentions_verifying_parent_wiring_before_flagging(self):
+        """SYSTEM_PROMPT should instruct the reviewer to check the actual parent
+        wiring of a destructive callback before flagging single-click data loss,
+        rather than assuming the guard is absent from an unguarded-looking child."""
+        self.assertIn(
+            "verify the actual parent wiring",
+            deepseek_review.SYSTEM_PROMPT,
+        )
+
+    def test_prompt_mentions_frame_as_question_when_parent_not_in_diff(self):
+        """SYSTEM_PROMPT should tell the reviewer to frame an unguarded-looking
+        destructive click in a child component as a verification question (not a
+        defect) when the guard's parent file is outside the change set."""
+        self.assertIn(
+            "verification question",
+            deepseek_review.SYSTEM_PROMPT,
+        )
+
 
 # ---------------------------------------------------------------------------
 # Workflow YAML configuration

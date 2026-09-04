@@ -79,7 +79,16 @@ safety mechanism (custom confirmation modal, undo toast, secondary click \
 confirmation, or similar). Removing the guard entirely makes the action fire \
 on a single click, creating a high risk of accidental data loss. A review \
 must flag any PR that removes an existing destructive-action confirmation \
-without providing an alternative safety mechanism**
+without providing an alternative safety mechanism**; \
+**composition-root confirmation guard — a presentational child component \
+(card, row, list item) firing a destructive callback immediately (e.g. \
+`onDelete(id)` on click) is NOT itself a defect: the confirmation guard is \
+often wired at the composition root where the parent composes the handler \
+(e.g. via `useConfirm` + a confirmation modal, `handleDeleteWithConfirm`). \
+Before flagging single-click data loss in a child, verify the actual parent \
+wiring to see whether the guard exists upstream. When the parent file is \
+outside the change set, frame it as a verification question rather than a \
+defect, and note that the guard may live at the composition root**
 
 2. **Boundary Validation** — Missing input validation at data entry points \
 (form submission, API handlers, file parsing). Data should be sanitized or \
