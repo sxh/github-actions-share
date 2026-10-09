@@ -88,7 +88,7 @@ often wired at the composition root where the parent composes the handler \
 Before flagging single-click data loss in a child, verify the actual parent \
 wiring to see whether the guard exists upstream. When the parent file is \
 outside the change set, frame it as a verification question rather than a \
-defect, and note that the guard may live at the composition root**
+defect, and note that the guard may live at the composition root**; **datastore N+1 vs sequential domain calls — before flagging an N+1, identify what the per-iteration call does. A loop or `map`/`forEach` callback that issues one datastore round-trip per element (a DynamoDB `GetCommand`/`PutCommand`/`UpdateCommand`/`DeleteCommand`/`QueryCommand`, or one HTTP/database call per element) IS an N+1 and should be flagged with a batching suggestion. It is NOT an N+1 when the per-iteration call is a domain or service method (e.g. `auditService.log`, a pure mapper, or a method that already batches), when the collection is a small fixed set, or when the calls are deliberately sequential to preserve ordering (batching them would change observable behavior) — do not flag those. When the awaited method's implementation is not in the change set, frame it as a question rather than a defect.**
 
 2. **Boundary Validation** — Missing input validation at data entry points \
 (form submission, API handlers, file parsing). Data should be sanitized or \

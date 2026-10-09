@@ -948,6 +948,32 @@ class TestSystemPromptCategories(unittest.TestCase):
             deepseek_review.SYSTEM_PROMPT,
         )
 
+    def test_prompt_distinguishes_datastore_n_plus_one_from_domain_loops(self):
+        """SYSTEM_PROMPT should distinguish a true datastore N+1 (one datastore
+        command issued per element inside a loop/map) from a loop that calls a
+        domain or service method. A sequential audit/domain call is not an N+1 —
+        DeepSeek re-flagged guestAvailabilityService.createMany's sequential
+        audit loop even though an in-code comment explained it preserves
+        ordering."""
+        self.assertIn(
+            "datastore N+1",
+            deepseek_review.SYSTEM_PROMPT,
+        )
+        self.assertIn(
+            "sequential domain calls",
+            deepseek_review.SYSTEM_PROMPT,
+        )
+
+    def test_prompt_exempts_deliberately_sequential_ordering(self):
+        """SYSTEM_PROMPT should exempt loops whose per-iteration calls are
+        deliberately sequential to preserve ordering (and loops over a small
+        fixed set) from N+1 findings, since batching those would change
+        observable behavior."""
+        self.assertIn(
+            "deliberately sequential to preserve ordering",
+            deepseek_review.SYSTEM_PROMPT,
+        )
+
 
 # ---------------------------------------------------------------------------
 # Workflow YAML configuration
