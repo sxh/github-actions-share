@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install coverage
+        run: python3 -m pip install coverage==7.14.3
+
+      # scripts/cover.sh runs the deepseek-review.py unit tests and enforces the
+      # 95% coverage gate for scripts/*.
+      - name: Tests + coverage gate
+        run: bash scripts/cover.sh
