@@ -31,3 +31,4 @@
 {"e":"created","id":"T015","type":"main","title":"DeepSeek review missed inline styles","ts":1782385388518}
 {"e":"done","id":"T015","ts":1782385406583}
 {"e":"created","id":"T016","type":"main","title":"DeepSeek review missed inline styles","ts":1782385409135}
+{"e":"backlog_add","id":"B002","title":"Replace hand-rolled urllib HTTP in deepseek-review.py with SDKs","detail":"scripts/deepseek-review.py hand-rolls urllib for both APIs: call_deepseek() (~50 lines of manual JSON payload, POST to api.deepseek.com, hand-handled HTTPError/URLError) and post_review() (~35 lines of manual Bearer headers and POST to the reviews endpoint). Replace with the openai Python SDK pointed at base_url https://api.deepseek.com (OpenAI-compatible) and PyGithub/githubkit — or simply gh api, which is pre-installed. The 1,019-line test file exists largely to mock urllib. Small effort (~1-2h), low risk. Homegrown-vs-frameworks audit, 2026-10-10.","ts":1791715511330}
