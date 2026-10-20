@@ -19,6 +19,7 @@ import sys
 import tempfile
 import unittest
 import urllib.error
+import yaml as _yaml
 from unittest.mock import patch, MagicMock
 
 # ---------------------------------------------------------------------------
@@ -35,13 +36,6 @@ _SPEC.loader.exec_module(deepseek_review)
 build_prompt = deepseek_review.build_prompt
 should_exclude = deepseek_review.should_exclude
 main = deepseek_review.main
-
-# Optional: yaml is only needed for the workflow template test
-try:
-    import yaml as _yaml
-    YAML_AVAILABLE = True
-except ImportError:
-    YAML_AVAILABLE = False
 
 # ---------------------------------------------------------------------------
 # Git helpers for test setup
@@ -1063,7 +1057,6 @@ class TestWorkflowYaml(unittest.TestCase):
         os.path.dirname(__file__), "..", ".github", "workflows", "deepseek-review-template.yml"
     )
 
-    @unittest.skipIf(not YAML_AVAILABLE, "PyYAML not installed")
     def test_checkout_merge_commit_uses_fetch_depth_0(self):
         """The PR merge-commit checkout step must use fetch-depth: 0 so that
         BASE_SHA and HEAD_SHA are available in the local clone."""
@@ -1090,6 +1083,43 @@ class TestWorkflowYaml(unittest.TestCase):
             0,
             "PR merge-commit checkout step must have fetch-depth: 0",
         )
+
+
+# ---------------------------------------------------------------------------
+# CI dependency installation
+# ---------------------------------------------------------------------------
+
+class TestCiDependencies(unittest.TestCase):
+    """CI must install every test dependency, not just coverage."""
+
+    _CI_PATH = os.path.join(
+        os.path.dirname(__file__), "..", ".github", "workflows", "ci.yml"
+    )
+    _REQUIREMENTS_PATH = os.path.join(
+        os.path.dirname(__file__), "..", "requirements-dev.txt"
+    )
+
+    def test_ci_installs_dev_requirements(self):
+        """The CI install step must use requirements-dev.txt so declared
+        test dependencies (including PyYAML) are present and the workflow
+        assertion test cannot silently skip."""
+        with open(self._CI_PATH) as f:
+            workflow = _yaml.safe_load(f)
+
+        install_commands = [
+            step.get("run", "") for step in workflow["jobs"]["test"]["steps"]
+        ]
+        self.assertTrue(
+            any(
+                "pip install -r requirements-dev.txt" in command
+                for command in install_commands
+            ),
+            "ci.yml must install test dependencies from requirements-dev.txt",
+        )
+
+        with open(self._REQUIREMENTS_PATH) as f:
+            requirements = f.read().lower()
+        self.assertIn("pyyaml", requirements)
 
 
 if __name__ == "__main__":

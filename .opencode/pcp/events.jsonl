@@ -35,3 +35,6 @@
 {"e":"resume_set","id":"T016","prompt":"About to start subtask [CI: make deepseek-review tests hermetic re init.defaultBranch (pin git init -b main, regression test)]; when done, continue the main task: DeepSeek review missed inline styles.","ts":1792506242133}
 {"e":"sub","id":"T017","parent":"T016","title":"CI: make deepseek-review tests hermetic re init.defaultBranch (pin git init -b main, regression test)","ts":1792506242133}
 {"e":"done","id":"T017","ts":1792506320568}
+{"e":"resume_set","id":"T016","prompt":"About to start subtask [CI: install declared test deps (requirements-dev.txt with pyyaml) so workflow test stops skipping]; when done, continue the main task: DeepSeek review missed inline styles.","ts":1792507246786}
+{"e":"sub","id":"T018","parent":"T016","title":"CI: install declared test deps (requirements-dev.txt with pyyaml) so workflow test stops skipping","ts":1792507246786}
+{"e":"done","id":"T018","ts":1792507335639}

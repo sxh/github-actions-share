@@ -17,8 +17,8 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install coverage
-        run: python3 -m pip install coverage==7.14.3
+      - name: Install test dependencies
+        run: python3 -m pip install -r requirements-dev.txt
 
       # scripts/cover.sh runs the deepseek-review.py unit tests and enforces the
       # 95% coverage gate for scripts/*.
