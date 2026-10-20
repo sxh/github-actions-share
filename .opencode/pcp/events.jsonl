@@ -41,3 +41,5 @@
 {"e":"created","id":"T019","type":"main","title":"Replace hand-rolled urllib HTTP in deepseek-review.py with SDKs","ts":1792508455156}
 {"e":"backlog_promote","backlog_id":"B002","task_id":"T019","ts":1792508455156}
 {"e":"done","id":"T019","ts":1792509081147}
+{"e":"pivoted","id":"T016","reason":"Dismissed by user: the concrete inline-styles miss is no longer available, so T016 has no actionable acceptance criterion.","ts":1792509226447}
+{"e":"backlog_add","id":"B003","title":"Add a gate-run helper that captures a command's exit code before filtering its output","detail":"Enforcement for the recurring \"Verify the Actual State\" rule (2026-10-12 entry), which recurred on 2026-10-20: `python3 -m pip install openai | tail -5; echo EXIT=$?` reported EXIT=0 while pip had failed under PEP 668, and a follow-up used bash-only `${PIPESTATUS[0]}` in zsh and captured an empty value. A wrapper (run command to a log, capture $? immediately, print tail, fail loudly if the capture is empty) removes the hand-written pipe idiom.","ts":1792509660841}

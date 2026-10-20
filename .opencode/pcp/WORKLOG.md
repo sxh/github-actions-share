@@ -7,3 +7,4 @@
 - 2026-10-20 14:42 ✅ [T018] CI: install declared test deps (requirements-dev.txt with pyyaml) so workflow test stops skipping
 - 2026-10-20 15:00 🔁 Swapped [T016] (paused) with [T019]
 - 2026-10-20 15:11 ✅ [T019] Replace hand-rolled urllib HTTP in deepseek-review.py with SDKs
+- 2026-10-20 15:13 🔄 [T016] DeepSeek review missed inline styles → pivot: Dismissed by user: the concrete inline-styles miss is no longer available, so T016 has no actionable acceptance criterion.
