@@ -88,7 +88,7 @@ often wired at the composition root where the parent composes the handler \
 Before flagging single-click data loss in a child, verify the actual parent \
 wiring to see whether the guard exists upstream. When the parent file is \
 outside the change set, frame it as a verification question rather than a \
-defect, and note that the guard may live at the composition root**; **datastore N+1 vs sequential domain calls — before flagging an N+1, identify what the per-iteration call does. A loop or `map`/`forEach` callback that issues one datastore round-trip per element (a DynamoDB `GetCommand`/`PutCommand`/`UpdateCommand`/`DeleteCommand`/`QueryCommand`, or one HTTP/database call per element) IS an N+1 and should be flagged with a batching suggestion. It is NOT an N+1 when the per-iteration call is a domain or service method (e.g. `auditService.log`, a pure mapper, or a method that already batches), when the collection is a small fixed set, or when the calls are deliberately sequential to preserve ordering (batching them would change observable behavior) — do not flag those. When the awaited method's implementation is not in the change set, frame it as a question rather than a defect.**
+defect, and note that the guard may live at the composition root**; **datastore N+1 vs sequential domain calls — before flagging an N+1, identify what the per-iteration call does. A loop or `map`/`forEach` callback that issues one datastore round-trip per element (a DynamoDB `GetCommand`/`PutCommand`/`UpdateCommand`/`DeleteCommand`/`QueryCommand`, or one HTTP/database call per element) IS an N+1 and should be flagged with a batching suggestion. It is NOT an N+1 when the per-iteration call is a domain or service method (e.g. `auditService.log`, a pure mapper, or a method that already batches), when the collection is a small fixed set, or when the calls are deliberately sequential to preserve ordering (batching them would change observable behavior) — do not flag those. When the awaited method's implementation is not in the change set, frame it as a question rather than a defect. `Promise.all(ids.map(fetchOne))` where the backend offers no batch API for the operation (e.g. Cognito has no `BatchGetUsers`, and its `ListUsers` filter is capped and cannot resolve usernames) is NOT a fixable N+1: the calls run concurrently and latency is bounded by the slowest call, not the sum — do not flag it.**; **unpersisted write-path field — a field passed into a write path is persisted only when the persistence schema/entity declares it. When the schema (Zod object, DynamoDB entity, ORM model) strips or does not declare the field, the value is never stored; do not report it as persisted data. Verify the schema before flagging.**
 
 2. **Boundary Validation** — Missing input validation at data entry points \
 (form submission, API handlers, file parsing). Data should be sanitized or \
@@ -100,7 +100,7 @@ legacy data, or file sources may be null, undefined, or empty at runtime. \
 Accessing a property without a fallback can silently produce `"null (Copy)"` \
 or `"undefined (Copy)"` in derived output. Require explicit fallbacks like \
 `obj.field?.trim() || "Default"` or optional chaining with nullish coalescing \
-when the field is used to construct new data
+when the field is used to construct new data; **upstream validation already applied — before flagging a missing trim/validation at a boundary, check whether the value is already validated at the API/handler entry point (e.g. a `zValidator`/Zod schema) or re-validated by the persistence schema before storage. If it is, do not flag it again.**
 
 3. **Defensive Events** — Missing `stopPropagation()` or `preventDefault()` \
 where needed, double-firing, event delegation issues, unintended default \
@@ -182,6 +182,7 @@ arguments to catch regressions where the wrong data is passed.
 Be conservative about flagging:
 - Style preferences or formatting (unless they cause actual bugs)
 - Code that follows existing project conventions (even if unconventional)
+- **Tracker IDs** such as `(backlog B119)` or `See B144` in comments are the project's intentional in-code traceability convention, not a defect or a stale reference.
 
 For each issue you identify, cite the specific file and line number.
 If you are uncertain about an issue, frame it as a question rather than a defect.\

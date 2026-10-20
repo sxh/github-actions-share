@@ -974,6 +974,40 @@ class TestSystemPromptCategories(unittest.TestCase):
             deepseek_review.SYSTEM_PROMPT,
         )
 
+    def test_prompt_mentions_unpersisted_write_path_field(self):
+        """SYSTEM_PROMPT should not flag a write-path field the persistence
+        schema does not declare: the value is stripped or ignored on write.
+        This is the Friendship.timezone false positive from PR #230."""
+        self.assertIn(
+            "unpersisted write-path field",
+            deepseek_review.SYSTEM_PROMPT,
+        )
+
+    def test_prompt_mentions_upstream_boundary_validation(self):
+        """SYSTEM_PROMPT should not re-flag validation that already happens at
+        the API/handler entry point or in the persistence schema — the
+        createMirroredPair email trim false positive from PR #230."""
+        self.assertIn(
+            "upstream validation already applied",
+            deepseek_review.SYSTEM_PROMPT,
+        )
+
+    def test_prompt_mentions_tracker_ids_are_not_a_defect(self):
+        """SYSTEM_PROMPT should treat backlog/tracker IDs in comments as the
+        project's intentional traceability convention, not a defect."""
+        self.assertIn(
+            "Tracker IDs",
+            deepseek_review.SYSTEM_PROMPT,
+        )
+
+    def test_prompt_exempts_parallel_fan_out_without_batch_api(self):
+        """SYSTEM_PROMPT should exempt parallel point-read fan-out when the
+        backend has no batch API (e.g. Cognito BatchGetUsers): concurrent calls
+        are bounded by the slowest call, not the sum. B119/B147 recurrence."""
+        prompt = deepseek_review.SYSTEM_PROMPT
+        self.assertIn("no batch API", prompt)
+        self.assertIn("bounded by the slowest call", prompt)
+
 
 # ---------------------------------------------------------------------------
 # Workflow YAML configuration
