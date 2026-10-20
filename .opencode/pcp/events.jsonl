@@ -38,3 +38,6 @@
 {"e":"resume_set","id":"T016","prompt":"About to start subtask [CI: install declared test deps (requirements-dev.txt with pyyaml) so workflow test stops skipping]; when done, continue the main task: DeepSeek review missed inline styles.","ts":1792507246786}
 {"e":"sub","id":"T018","parent":"T016","title":"CI: install declared test deps (requirements-dev.txt with pyyaml) so workflow test stops skipping","ts":1792507246786}
 {"e":"done","id":"T018","ts":1792507335639}
+{"e":"created","id":"T019","type":"main","title":"Replace hand-rolled urllib HTTP in deepseek-review.py with SDKs","ts":1792508455156}
+{"e":"backlog_promote","backlog_id":"B002","task_id":"T019","ts":1792508455156}
+{"e":"done","id":"T019","ts":1792509081147}

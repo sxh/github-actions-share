@@ -27,6 +27,9 @@ jobs:
           path: .github/actions-share
           ref: main
 
+      - name: Install shared tool dependencies
+        run: python3 -m pip install -r .github/actions-share/requirements.txt
+
       - name: Run DeepSeek Full-Context Review
         run: python3 .github/actions-share/scripts/deepseek-review.py
         env:

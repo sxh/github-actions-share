@@ -18,8 +18,8 @@ import subprocess
 import sys
 import tempfile
 import unittest
-import urllib.error
 import yaml as _yaml
+import openai
 from unittest.mock import patch, MagicMock
 
 # ---------------------------------------------------------------------------
@@ -516,7 +516,7 @@ class TestBuildPromptEdgeCases(unittest.TestCase):
 # ---------------------------------------------------------------------------
 
 class TestCallDeepseek(unittest.TestCase):
-    """Tests for call_deepseek with mocked urllib."""
+    """Tests for call_deepseek with a mocked OpenAI client."""
 
     def setUp(self):
         self._saved_environ = os.environ.copy()
@@ -526,72 +526,76 @@ class TestCallDeepseek(unittest.TestCase):
         os.environ.clear()
         os.environ.update(self._saved_environ)
 
-    def test_http_error_exits(self):
-        """call_deepseek should exit(1) on HTTP 401."""
-        with patch("urllib.request.urlopen") as mock_urlopen:
-            mock_urlopen.side_effect = urllib.error.HTTPError(
-                "https://api.deepseek.com/chat/completions",
-                401,
-                "Unauthorized",
-                {},
-                io.BytesIO(b'{"error":"unauthorized"}'),
-            )
-            with self.assertRaises(SystemExit) as ctx:
-                deepseek_review.call_deepseek("hello")
-            self.assertEqual(ctx.exception.code, 1)
+    def test_sends_review_via_openai_compatible_client(self):
+        """call_deepseek should use the OpenAI SDK pointed at DeepSeek and
+        return the first choice's message content."""
+        fake_response = MagicMock()
+        fake_response.choices = [MagicMock()]
+        fake_response.choices[0].message.content = "Looks good!"
 
-    def test_network_error_exits(self):
-        """call_deepseek should exit(1) on network error."""
-        with patch("urllib.request.urlopen") as mock_urlopen:
-            mock_urlopen.side_effect = urllib.error.URLError("Connection refused")
-            with self.assertRaises(SystemExit) as ctx:
-                deepseek_review.call_deepseek("hello")
-            self.assertEqual(ctx.exception.code, 1)
+        with patch.object(deepseek_review, "OpenAI") as mock_openai:
+            mock_openai.return_value.chat.completions.create.return_value = fake_response
+            result = deepseek_review.call_deepseek("hello")
+
+        mock_openai.assert_called_once_with(
+            api_key="test-token",
+            base_url="https://api.deepseek.com",
+            timeout=300,
+        )
+        mock_openai.return_value.chat.completions.create.assert_called_once_with(
+            model="deepseek-reasoner",
+            messages=[
+                {"role": "system", "content": deepseek_review.SYSTEM_PROMPT},
+                {"role": "user", "content": "hello"},
+            ],
+            temperature=0.3,
+        )
+        self.assertEqual(result, "Looks good!")
+
+    def test_api_error_exits(self):
+        """call_deepseek should exit(1) when the API rejects the request."""
+        with patch.object(deepseek_review, "OpenAI") as mock_openai:
+            mock_openai.return_value.chat.completions.create.side_effect = (
+                openai.APIError("401 unauthorized", MagicMock(), body=None)
+            )
+            with patch("sys.stderr", new_callable=io.StringIO) as stderr:
+                with self.assertRaises(SystemExit) as ctx:
+                    deepseek_review.call_deepseek("hello")
+        self.assertEqual(ctx.exception.code, 1)
+        self.assertIn("DeepSeek API error", stderr.getvalue())
+
+    def test_connection_error_exits(self):
+        """call_deepseek should exit(1) when the API is unreachable."""
+        with patch.object(deepseek_review, "OpenAI") as mock_openai:
+            mock_openai.return_value.chat.completions.create.side_effect = (
+                openai.APIConnectionError(request=MagicMock())
+            )
+            with patch("sys.stderr", new_callable=io.StringIO) as stderr:
+                with self.assertRaises(SystemExit) as ctx:
+                    deepseek_review.call_deepseek("hello")
+        self.assertEqual(ctx.exception.code, 1)
+        self.assertIn("network error", stderr.getvalue())
 
     def test_empty_choices_exits(self):
         """call_deepseek should exit(1) when API returns no choices."""
-        mock_resp = MagicMock()
-        mock_resp.read.return_value = b'{"choices": []}'
-        mock_resp.__enter__.return_value = mock_resp
+        fake_response = MagicMock()
+        fake_response.choices = []
 
-        with patch("urllib.request.urlopen", return_value=mock_resp):
-            with self.assertRaises(SystemExit) as ctx:
-                deepseek_review.call_deepseek("hello")
-            self.assertEqual(ctx.exception.code, 1)
-
-    def test_payload_includes_deepseek_reasoner_model(self):
-        """call_deepseek should send 'deepseek-reasoner' as the model in the request payload."""
-        captured_payload = {}
-
-        def capture_request(req, **kwargs):
-            captured_payload["data"] = json.loads(req.data.decode("utf-8"))
-            mock_resp = MagicMock()
-            mock_resp.read.return_value = b'{"choices": [{"message": {"content": "ok"}}]}'
-            mock_resp.__enter__.return_value = mock_resp
-            return mock_resp
-
-        with patch("urllib.request.urlopen", side_effect=capture_request):
-            deepseek_review.call_deepseek("hello")
-
-        self.assertEqual(captured_payload["data"]["model"], "deepseek-reasoner")
-
-    def test_success_returns_content(self):
-        """call_deepseek should return the review text on success."""
-        mock_resp = MagicMock()
-        mock_resp.read.return_value = b'{"choices": [{"message": {"content": "Looks good!"}}]}'
-        mock_resp.__enter__.return_value = mock_resp
-
-        with patch("urllib.request.urlopen", return_value=mock_resp):
-            result = deepseek_review.call_deepseek("hello")
-            self.assertEqual(result, "Looks good!")
+        with patch.object(deepseek_review, "OpenAI") as mock_openai:
+            mock_openai.return_value.chat.completions.create.return_value = fake_response
+            with patch("sys.stderr", new_callable=io.StringIO) as stderr:
+                with self.assertRaises(SystemExit) as ctx:
+                    deepseek_review.call_deepseek("hello")
+        self.assertEqual(ctx.exception.code, 1)
+        self.assertIn("no choices", stderr.getvalue())
 
 
 # ---------------------------------------------------------------------------
-# post_review — error paths (mocked HTTP)
+# post_review — GitHub CLI boundary
 # ---------------------------------------------------------------------------
 
 class TestPostReview(unittest.TestCase):
-    """Tests for post_review with mocked urllib."""
+    """Tests for post_review posting through the gh CLI."""
 
     def setUp(self):
         self._saved_environ = os.environ.copy()
@@ -603,29 +607,47 @@ class TestPostReview(unittest.TestCase):
         os.environ.clear()
         os.environ.update(self._saved_environ)
 
-    def test_http_error_exits(self):
-        """post_review should exit(1) on HTTP 403."""
-        with patch("urllib.request.urlopen") as mock_urlopen:
-            mock_urlopen.side_effect = urllib.error.HTTPError(
-                "https://api.github.com/repos/test/repo/pulls/42/reviews",
-                403,
-                "Forbidden",
-                {},
-                io.BytesIO(b'{"message":"Forbidden"}'),
+    def test_posts_review_via_gh_api(self):
+        """post_review should POST the review body with gh api."""
+        completed = MagicMock(
+            returncode=0,
+            stdout='{"html_url": "https://github.com/test/repo/pull/42#review-1"}',
+            stderr="",
+        )
+        with patch.object(deepseek_review.subprocess, "run", return_value=completed) as mock_run, \
+                patch("urllib.request.urlopen") as mock_urlopen:
+            mock_urlopen.side_effect = AssertionError(
+                "post_review must not use urllib"
+            )
+            deepseek_review.post_review("review body")
+
+        mock_urlopen.assert_not_called()
+        command = mock_run.call_args.args[0]
+        self.assertEqual(
+            command,
+            ["gh", "api", "-X", "POST",
+             "repos/test/repo/pulls/42/reviews", "--input", "-"],
+        )
+        self.assertEqual(
+            json.loads(mock_run.call_args.kwargs["input"]),
+            {"body": "review body", "event": "COMMENT"},
+        )
+
+    def test_gh_error_exits(self):
+        """post_review should exit(1) when gh api fails."""
+        failed = MagicMock(returncode=1, stdout="", stderr="gh: Forbidden (HTTP 403)")
+        with patch.object(deepseek_review.subprocess, "run", return_value=failed), \
+                patch("urllib.request.urlopen") as mock_urlopen, \
+                patch("sys.stderr", new_callable=io.StringIO) as stderr:
+            mock_urlopen.side_effect = AssertionError(
+                "post_review must not use urllib"
             )
             with self.assertRaises(SystemExit) as ctx:
                 deepseek_review.post_review("review body")
-            self.assertEqual(ctx.exception.code, 1)
 
-    def test_success_posts_review(self):
-        """post_review should complete without error on successful post."""
-        mock_resp = MagicMock()
-        mock_resp.read.return_value = b'{"html_url": "https://github.com/test/repo/pull/42#review-1"}'
-        mock_resp.__enter__.return_value = mock_resp
-
-        with patch("urllib.request.urlopen", return_value=mock_resp):
-            # Should not raise
-            deepseek_review.post_review("review body")
+        self.assertEqual(ctx.exception.code, 1)
+        self.assertIn("GitHub API error", stderr.getvalue())
+        mock_urlopen.assert_not_called()
 
 
 # ---------------------------------------------------------------------------
@@ -1120,6 +1142,50 @@ class TestCiDependencies(unittest.TestCase):
         with open(self._REQUIREMENTS_PATH) as f:
             requirements = f.read().lower()
         self.assertIn("pyyaml", requirements)
+
+
+# ---------------------------------------------------------------------------
+# Reusable review workflow dependencies
+# ---------------------------------------------------------------------------
+
+class TestReviewWorkflowDependencies(unittest.TestCase):
+    """The reusable workflow must install the script's runtime dependencies."""
+
+    _TEMPLATE_PATH = os.path.join(
+        os.path.dirname(__file__), "..", ".github", "workflows", "deepseek-review-template.yml"
+    )
+    _REQUIREMENTS_PATH = os.path.join(
+        os.path.dirname(__file__), "..", "requirements.txt"
+    )
+
+    def test_installs_runtime_deps_before_running_review(self):
+        """The template must install requirements.txt before invoking the
+        script, otherwise the openai import fails at runtime."""
+        with open(self._TEMPLATE_PATH) as f:
+            workflow = _yaml.safe_load(f)
+
+        runs = [
+            step.get("run", "") for step in workflow["jobs"]["review"]["steps"]
+        ]
+        install_at = next(
+            (
+                index
+                for index, command in enumerate(runs)
+                if "pip install -r .github/actions-share/requirements.txt" in command
+            ),
+            -1,
+        )
+        script_at = next(
+            (index for index, command in enumerate(runs) if "deepseek-review.py" in command),
+            -1,
+        )
+
+        self.assertNotEqual(install_at, -1, "template must install runtime dependencies")
+        self.assertNotEqual(script_at, -1, "template must run the review script")
+        self.assertLess(install_at, script_at)
+
+        with open(self._REQUIREMENTS_PATH) as f:
+            self.assertIn("openai", f.read().lower())
 
 
 if __name__ == "__main__":

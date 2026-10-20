@@ -19,14 +19,16 @@ import json
 import os
 import subprocess
 import sys
-import urllib.error
-import urllib.request
+
+from openai import OpenAI, APIError, APIConnectionError
 
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
 
 MAX_TOTAL_CHARS = 300_000  # total prompt budget (~75k tokens, room for 128k context)
+DEEPSEEK_BASE_URL = "https://api.deepseek.com"
+DEEPSEEK_MODEL = "deepseek-reasoner"
 EXCLUDED_PATTERNS = (
     # Lock / generated files
     "package-lock.json",
@@ -311,74 +313,58 @@ def build_prompt() -> str:
 
 def call_deepseek(user_prompt: str) -> str:
     """Send the prompt to DeepSeek and return the response text."""
-    payload = json.dumps({
-        "model": "deepseek-reasoner",
-        "messages": [
-            {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": user_prompt},
-        ],
-        "temperature": 0.3,
-    }).encode("utf-8")
-
-    req = urllib.request.Request(
-        "https://api.deepseek.com/chat/completions",
-        data=payload,
-        headers={
-            "Authorization": f"Bearer {os.environ['CHAT_TOKEN']}",
-            "Content-Type": "application/json; charset=utf-8",
-        },
-        method="POST",
+    client = OpenAI(
+        api_key=os.environ["CHAT_TOKEN"],
+        base_url=DEEPSEEK_BASE_URL,
+        timeout=300,
     )
 
     try:
-        with urllib.request.urlopen(req, timeout=300) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-    except urllib.error.HTTPError as e:
-        body = e.read().decode("utf-8", errors="replace")
-        print(f"DeepSeek API error {e.code}: {body}", file=sys.stderr)
+        response = client.chat.completions.create(
+            model=DEEPSEEK_MODEL,
+            messages=[
+                {"role": "system", "content": SYSTEM_PROMPT},
+                {"role": "user", "content": user_prompt},
+            ],
+            temperature=0.3,
+        )
+    except APIConnectionError as exc:
+        print(f"DeepSeek API network error: {exc}", file=sys.stderr)
         sys.exit(1)
-    except urllib.error.URLError as e:
-        print(f"DeepSeek API network error: {e.reason}", file=sys.stderr)
+    except APIError as exc:
+        print(f"DeepSeek API error: {exc}", file=sys.stderr)
         sys.exit(1)
 
-    choices = data.get("choices", [])
-    if not choices:
-        print(f"DeepSeek API returned no choices: {data}", file=sys.stderr)
+    if not response.choices:
+        print(f"DeepSeek API returned no choices: {response}", file=sys.stderr)
         sys.exit(1)
 
-    return choices[0]["message"]["content"]
+    return response.choices[0].message.content
 
 
 def post_review(body: str):
-    """Post the review as a PR review comment on GitHub."""
+    """Post the review as a PR review comment on GitHub via the gh CLI."""
     repo = os.environ["REPO"]
     pr_number = os.environ["PR_NUMBER"]
 
-    payload = json.dumps({
-        "body": body,
-        "event": "COMMENT",
-    }).encode("utf-8")
-
-    url = f"https://api.github.com/repos/{repo}/pulls/{pr_number}/reviews"
-    req = urllib.request.Request(
-        url,
-        data=payload,
-        headers={
-            "Authorization": f"Bearer {os.environ['GITHUB_TOKEN']}",
-            "Content-Type": "application/json; charset=utf-8",
-            "Accept": "application/vnd.github.v3+json",
-        },
-        method="POST",
+    payload = json.dumps({"body": body, "event": "COMMENT"})
+    result = subprocess.run(
+        [
+            "gh", "api", "-X", "POST",
+            f"repos/{repo}/pulls/{pr_number}/reviews",
+            "--input", "-",
+        ],
+        input=payload,
+        capture_output=True,
+        text=True,
     )
 
-    try:
-        with urllib.request.urlopen(req, timeout=60) as resp:
-            result = json.loads(resp.read().decode("utf-8"))
-            print(f"Review posted: {result.get('html_url', url)}", file=sys.stderr)
-    except urllib.error.HTTPError as e:
-        body = e.read().decode("utf-8", errors="replace")
-        print(f"GitHub API error {e.code}: {body}", file=sys.stderr)
+    if result.returncode != 0:
+        print(f"GitHub API error: {result.stderr.strip()}", file=sys.stderr)
         sys.exit(1)
+
+    data = json.loads(result.stdout) if result.stdout.strip() else {}
+    print(f"Review posted: {data.get('html_url', '')}", file=sys.stderr)
 
 
 # ---------------------------------------------------------------------------
