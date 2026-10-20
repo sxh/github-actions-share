@@ -63,9 +63,13 @@ def _git(cwd, *args):
 
 
 def _init_repo(path):
-    """Initialise an empty git repository at *path*."""
+    """Initialise an empty git repository at *path* on branch ``main``.
+
+    The branch is pinned explicitly so the suite does not depend on the
+    host's ``init.defaultBranch`` (CI runners default to ``master``).
+    """
     os.makedirs(path, exist_ok=True)
-    _git(path, "init")
+    _git(path, "init", "-b", "main")
     _git(path, "config", "user.email", "test@test.com")
     _git(path, "config", "user.name", "Test")
 
@@ -78,6 +82,45 @@ def _commit(path, msg="commit"):
 
 # ---------------------------------------------------------------------------
 # Tests
+# ---------------------------------------------------------------------------
+
+class TestInitRepoHermeticity(unittest.TestCase):
+    """_init_repo() must not depend on the host's git configuration."""
+
+    def setUp(self):
+        self._tmpdir = tempfile.mkdtemp()
+
+    def tearDown(self):
+        shutil.rmtree(self._tmpdir, ignore_errors=True)
+
+    def test_creates_main_branch_when_host_default_is_master(self):
+        """Ambient init.defaultBranch=master must not change the branch name.
+
+        The CI runner has no init.defaultBranch set, so `git init` creates
+        `master` there; the merge-commit tests then fail on `checkout main`.
+        """
+        overrides = {
+            "GIT_CONFIG_COUNT": "1",
+            "GIT_CONFIG_KEY_0": "init.defaultBranch",
+            "GIT_CONFIG_VALUE_0": "master",
+        }
+        saved = {key: os.environ.get(key) for key in overrides}
+        os.environ.update(overrides)
+        try:
+            repo = os.path.join(self._tmpdir, "repo")
+            _init_repo(repo)
+        finally:
+            for key, value in saved.items():
+                if value is None:
+                    os.environ.pop(key, None)
+                else:
+                    os.environ[key] = value
+
+        self.assertEqual(_git(repo, "symbolic-ref", "--short", "HEAD"), "main")
+
+
+# ---------------------------------------------------------------------------
+# SHA resolution
 # ---------------------------------------------------------------------------
 
 class TestBuildPromptShaResolution(unittest.TestCase):
